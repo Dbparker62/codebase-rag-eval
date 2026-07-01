@@ -63,18 +63,19 @@ class LocalRepo:
 
     async def grep(self, pattern: str, max_results: int = 20) -> list[dict]:
         proc = subprocess.run(
-            ["rg", "--line-number", "--no-heading", pattern, self.root],
+            ["rg", "--line-number", "--no-heading", pattern, "."],  # search ".", not self.root
             capture_output=True, text=True,
+            cwd=self.root,                                           # run rg INSIDE the repo
         )
         out: list[dict] = []
         for line in proc.stdout.splitlines()[:max_results]:
-            parts = line.split(":", 2)                     # path:line:match
-            if len(parts) == 3:
-                out.append({
-                    "file_path": parts[0].replace(self.root + "/", ""),
-                    "line": int(parts[1]),
-                    "match": parts[2],
-                })
+            parts = line.split(":", 2)        # now: relpath:line:match  (no drive letter)
+            rel = parts[0].replace("\\", "/").lstrip("./")
+            out.append({
+                "file_path": rel,
+                "line": int(parts[1]),
+                "match": parts[2],
+            })
         return out
 
 

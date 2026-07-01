@@ -1,0 +1,30 @@
+[project]
+name = "codebase-rag-eval"
+version = "0.1.0"
+description = "Grounded codebase Q&A agent with a regression-blocking eval harness"
+requires-python = ">=3.11"
+
+dependencies = [
+    # Pinned to the V1 line so the provided agent skeleton runs as-written.
+    # V2 (2.x) is a breaking redesign — migrate deliberately, not by accident.
+    "pydantic-ai>=1,<2",
+    "chromadb>=0.5",          # local vector store (Day 2)
+    "ragas>=0.2",             # RAG eval metrics (Day 8) — or swap for deepeval
+    "boto3>=1.34",            # AWS SDK: DynamoDB + Lambda (Day 10+)
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.23",   # your agent + tools are async
+]
+
+[tool.pytest.ini_options]
+# Makes `from tools import ...` and `from agent import ...` resolve in tests
+# without a full editable install — this is the cleaner fix for your cross-folder imports.
+pythonpath = ["src", "eval", "."]
+asyncio_mode = "auto"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
